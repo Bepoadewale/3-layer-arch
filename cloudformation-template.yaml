@@ -155,30 +155,30 @@ Resources:
           CidrIp: 0.0.0.0/0
 
     # Application Layer: Roles, ECS Cluster, Task Definition, and Service
-  ECSExecutionRole:
+  ECSTaskExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-        AssumeRolePolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-            - Effect: Allow
-              Principal:
-                Service: ecs-tasks.amazonaws.com
-                Action: sts:AssumeRole
-        Policies:
-        - PolicyName: ECSExecutionRolePolicy
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: CloudWatchLogsPolicy
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
-                - Effect: Allow
-                  Action:
-                    - ecr:GetAuthorizationToken
-                    - ecr:BatchCheckLayerAvailability
-                    - ecr:GetDownloadUrlForLayer
-                    - ecr:BatchGetImage
-                    - logs:CreateLogStream
-                    - logs:PutLogEvents
-            Resource: "*"
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
 
   ECSCluster:
     Type: AWS::ECS::Cluster
@@ -194,7 +194,7 @@ Resources:
         - FARGATE
       Cpu: 256
       Memory: 512
-      ExecutionRoleArn: !GetAtt ECSExecutionRole.Arn
+      ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
       ContainerDefinitions:
         - Name: MyAppContainer
           Image: !Ref ContainerImage
