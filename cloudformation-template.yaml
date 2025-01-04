@@ -28,6 +28,7 @@ Parameters:
     Description: Task definition family name
   ContainerImage:
     Type: String
+    Default: amazonlinux
     Description: Docker image URL for the container
   ContainerPort:
     Type: Number
@@ -35,6 +36,7 @@ Parameters:
     Description: Port on which the container listens
   EmailAddress:
     Type: String
+    Default: test@example.com
     Description: Email address to receive SNS notifications
 
 # Foundation Layer: VPC, Subnets, Internet Gateway, NAT Gateway, and Route Tables
