@@ -56,7 +56,7 @@ jobs:
             EmailAddress=${{ secrets.SNS_EMAIL }} \
           --capabilities CAPABILITY_NAMED_IAM
 
-    # Step 9: Confirm Subscription to SNS
+    # Step 9: Confirm Subscription to SNS topic
     - name: Confirm SNS Subscription
       if: always()
       run: |
