@@ -37,10 +37,8 @@ Parameters:
     Type: String
     Description: Email address to receive SNS notifications
 
-Resources:
-
-  # Foundation Layer: VPC, Subnets, and NAT Gateway
 # Foundation Layer: VPC, Subnets, Internet Gateway, NAT Gateway, and Route Tables
+Resources:
 Vpc:
   Type: AWS::EC2::VPC
   Properties:
@@ -112,19 +110,6 @@ PrivateRouteTable:
       - Key: Name
         Value: PrivateRouteTable
 
-PrivateRoute:
-  Type: AWS::EC2::Route
-  Properties:
-    RouteTableId: !Ref PrivateRouteTable
-    DestinationCidrBlock: 0.0.0.0/0
-    NatGatewayId: !Ref NatGateway
-
-PrivateSubnetRouteTableAssociation:
-  Type: AWS::EC2::SubnetRouteTableAssociation
-  Properties:
-    SubnetId: !Ref PrivateSubnet
-    RouteTableId: !Ref PrivateRouteTable
-
 NatGatewayEIP:
   Type: AWS::EC2::EIP
   Properties:
@@ -138,6 +123,33 @@ NatGateway:
     Tags:
       - Key: Name
         Value: MyNatGateway
+
+PrivateRoute:
+  Type: AWS::EC2::Route
+  Properties:
+    RouteTableId: !Ref PrivateRouteTable
+    DestinationCidrBlock: 0.0.0.0/0
+    NatGatewayId: !Ref NatGateway
+
+PrivateSubnetRouteTableAssociation:
+  Type: AWS::EC2::SubnetRouteTableAssociation
+  Properties:
+    SubnetId: !Ref PrivateSubnet
+    RouteTableId: !Ref PrivateRouteTable
+
+  AppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref Vpc
+      GroupDescription: Allow traffic to the application
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref ContainerPort
+          ToPort: !Ref ContainerPort
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
 
 
   # Application Layer: Roles, ECS Cluster, Task Definition, and Service
@@ -257,22 +269,7 @@ NatGateway:
         ScaleInCooldown: 60
         ScaleOutCooldown: 30
 
-
   # Security Layer: Security Groups, WAF, and GuardDuty
-  AppSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      VpcId: !Ref Vpc
-      GroupDescription: Allow traffic to the application
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: !Ref ContainerPort
-          ToPort: !Ref ContainerPort
-          CidrIp: 0.0.0.0/0
-      SecurityGroupEgress:
-        - IpProtocol: -1
-          CidrIp: 0.0.0.0/0
-
   # Monitoring: CloudWatch Alarms for ECS
   RunningTasksAlarm:
     Type: AWS::CloudWatch::Alarm
