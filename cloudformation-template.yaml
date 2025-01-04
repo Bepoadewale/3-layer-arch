@@ -121,19 +121,22 @@ Resources:
               Protocol: tcp
 
   ECSService:
-  Type: AWS::ECS::Service
-  DependsOn: TaskDefinition
-  Properties:
-    Cluster: !Ref ECSCluster
-    DesiredCount: 2
-    LaunchType: FARGATE
-    NetworkConfiguration:
-      AwsvpcConfiguration:
-        Subnets:
-          - !Ref PublicSubnet
-        SecurityGroups:
-          - !Ref AppSecurityGroup
-    TaskDefinition: !Ref TaskDefinition
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ECSCluster
+      DesiredCount: 2
+      LaunchType: FARGATE
+      TaskDefinition: !Ref TaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - !Ref PublicSubnet
+          SecurityGroups:
+            - !Ref AppSecurityGroup
+          AssignPublicIp: ENABLED
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
 
   ECSAutoScalingRole:
     Type: AWS::IAM::Role
