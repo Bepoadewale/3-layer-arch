@@ -122,6 +122,7 @@ Resources:
 
   ECSService:
     Type: AWS::ECS::Service
+    DependsOn: TaskDefinition
     Properties:
       Cluster: !Ref ECSCluster
       DesiredCount: 2
@@ -135,7 +136,7 @@ Resources:
       DeploymentConfiguration:
         MaximumPercent: 200
         MinimumHealthyPercent: 100
-      TaskDefinition: !Ref TaskDefinition
+    TaskDefinition: !Ref TaskDefinition
 
   ECSAutoScalingRole:
     Type: AWS::IAM::Role
