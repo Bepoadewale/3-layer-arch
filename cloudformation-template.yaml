@@ -151,9 +151,7 @@ PrivateSubnetRouteTableAssociation:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
 
-
   # Application Layer: Roles, ECS Cluster, Task Definition, and Service
-  # ECS Execution Role for ECR
   ECSExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -269,8 +267,7 @@ PrivateSubnetRouteTableAssociation:
         ScaleInCooldown: 60
         ScaleOutCooldown: 30
 
-  # Security Layer: Security Groups, WAF, and GuardDuty
-  # Monitoring: CloudWatch Alarms for ECS
+  # Security Layer: Security Groups, WAF, CloudWatch, and GuardDuty
   RunningTasksAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
