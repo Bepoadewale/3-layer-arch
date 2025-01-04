@@ -36,7 +36,7 @@ Parameters:
     Description: Port on which the container listens
   EmailAddress:
     Type: String
-    Default: test@example.com
+    Default: bepoadewale@yahoo.com
     Description: Email address to receive SNS notifications
 
 # Foundation Layer: VPC, Subnets, Internet Gateway, NAT Gateway, and Route Tables
