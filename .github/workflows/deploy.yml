@@ -31,7 +31,7 @@ jobs:
     # Step 4: Log in to Amazon ECR
     - name: Log in to Amazon ECR
       run: |
-        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <account-id>.dkr.ecr.us-east-1.amazonaws.com
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com
 
     # Step 5: Build Docker Image
     - name: Build Docker image
@@ -39,11 +39,11 @@ jobs:
 
     # Step 6: Tag Docker Image
     - name: Tag Docker image
-      run: docker tag my-app:latest <account-id>.dkr.ecr.us-east-1.amazonaws.com/my-app:latest
+      run: docker tag my-app:latest ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com/my-app:latest
 
     # Step 7: Push Docker Image to ECR
     - name: Push Docker image to Amazon ECR
-      run: docker push <account-id>.dkr.ecr.us-east-1.amazonaws.com/my-app:latest
+      run: docker push ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com/my-app:latest
 
     # Step 8: Deploy CloudFormation Template
     - name: Deploy CloudFormation Stack
@@ -52,7 +52,7 @@ jobs:
           --template-file cloudformation-template.yaml \
           --stack-name MyMicroservicesStack \
           --parameter-overrides \
-            ContainerImage=<account-id>.dkr.ecr.us-east-1.amazonaws.com/my-app:latest \
+            ContainerImage=${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com/my-app:latest \
             EmailAddress=${{ secrets.SNS_EMAIL }} \
           --capabilities CAPABILITY_NAMED_IAM
 
