@@ -166,7 +166,7 @@ Resources:
     Properties:
       MaxCapacity: 10
       MinCapacity: 2
-      ResourceId: !Join ["service/", [!Ref ClusterName, "/", !Ref ServiceName]]
+      ResourceId: service/!Ref ClusterName/!Ref ServiceName
       RoleARN: !GetAtt ECSAutoScalingRole.Arn
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
