@@ -1,0 +1,71 @@
+name: CI/CD Pipeline for ECS Microservices Architecture
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout Code
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Configure AWS CLI
+    - name: Configure AWS CLI
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    # Step 3: Create ECR Repository (if not exists)
+    - name: Create ECR Repository
+      run: |
+        aws ecr describe-repositories --repository-names my-app || \
+        aws ecr create-repository --repository-name my-app
+
+    # Step 4: Log in to Amazon ECR
+    - name: Log in to Amazon ECR
+      run: |
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <account-id>.dkr.ecr.us-east-1.amazonaws.com
+
+    # Step 5: Build Docker Image
+    - name: Build Docker image
+      run: docker build -t my-app:latest .
+
+    # Step 6: Tag Docker Image
+    - name: Tag Docker image
+      run: docker tag my-app:latest <account-id>.dkr.ecr.us-east-1.amazonaws.com/my-app:latest
+
+    # Step 7: Push Docker Image to ECR
+    - name: Push Docker image to Amazon ECR
+      run: docker push <account-id>.dkr.ecr.us-east-1.amazonaws.com/my-app:latest
+
+    # Step 8: Deploy CloudFormation Template
+    - name: Deploy CloudFormation Stack
+      run: |
+        aws cloudformation deploy \
+          --template-file cloudformation-template.yaml \
+          --stack-name MyMicroservicesStack \
+          --parameter-overrides \
+            ContainerImage=<account-id>.dkr.ecr.us-east-1.amazonaws.com/my-app:latest \
+            EmailAddress=${{ secrets.SNS_EMAIL }} \
+          --capabilities CAPABILITY_NAMED_IAM
+
+    # Step 9: Confirm Subscription to SNS (Optional)
+    - name: Confirm SNS Subscription
+      if: always()
+      run: |
+        echo "Check your email inbox for a subscription confirmation email from AWS SNS and confirm it."
+
+    # Step 10: Update ECS Service
+    - name: Update ECS Service
+      run: |
+        aws ecs update-service \
+          --cluster MyCluster \
+          --service MyService \
+          --force-new-deployment
