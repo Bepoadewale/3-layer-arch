@@ -210,17 +210,17 @@ Resources:
         MinimumHealthyPercent: 100
   
   ECSAutoScalingRole:
-  Type: AWS::IAM::Role
-  Properties:
-    AssumeRolePolicyDocument:
-      Version: '2012-10-17'
-      Statement:
-        - Effect: Allow
-          Principal:
-            Service: application-autoscaling.amazonaws.com
-          Action: sts:AssumeRole
-    ManagedPolicyArns:
-      - arn:aws:iam::aws:policy/service-role/ApplicationAutoScalingForECSServiceRolePolicy
+    Type: AWS::IAM::Role
+    Properties:
+        AssumeRolePolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+                - Effect: Allow
+                  Principal:
+                        Service: application-autoscaling.amazonaws.com
+                  Action: sts:AssumeRole
+        ManagedPolicyArns:
+            - arn:aws:iam::aws:policy/service-role/ApplicationAutoScalingForECSServiceRolePolicy
 
   ECSScalingTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
