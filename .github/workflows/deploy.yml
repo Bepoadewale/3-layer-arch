@@ -22,7 +22,7 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
-    # Step 3: Create ECR Repository (if not exists)
+    # Step 3: Create ECR Repository (if it doesn't exist)
     - name: Create ECR Repository
       run: |
         aws ecr describe-repositories --repository-names my-app || \
