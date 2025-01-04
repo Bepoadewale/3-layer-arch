@@ -40,49 +40,107 @@ Parameters:
 Resources:
 
   # Foundation Layer: VPC, Subnets, and NAT Gateway
-  Vpc:
-    Type: AWS::EC2::VPC
-    Properties:
-      CidrBlock: !Ref VpcCidrBlock
-      EnableDnsSupport: true
-      EnableDnsHostnames: true
-      Tags:
-        - Key: Name
-          Value: MyVpc
+# Foundation Layer: VPC, Subnets, Internet Gateway, NAT Gateway, and Route Tables
+Vpc:
+  Type: AWS::EC2::VPC
+  Properties:
+    CidrBlock: !Ref VpcCidrBlock
+    EnableDnsSupport: true
+    EnableDnsHostnames: true
+    Tags:
+      - Key: Name
+        Value: MyVpc
 
-  PublicSubnet:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref Vpc
-      CidrBlock: !Ref PublicSubnetCidr
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value: PublicSubnet
+InternetGateway:
+  Type: AWS::EC2::InternetGateway
+  Properties:
+    Tags:
+      - Key: Name
+        Value: MyInternetGateway
 
-  PrivateSubnet:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref Vpc
-      CidrBlock: !Ref PrivateSubnetCidr
-      Tags:
-        - Key: Name
-          Value: PrivateSubnet
+VPCGatewayAttachment:
+  Type: AWS::EC2::VPCGatewayAttachment
+  Properties:
+    VpcId: !Ref Vpc
+    InternetGatewayId: !Ref InternetGateway
 
-  NatGatewayEIP:
-    Type: AWS::EC2::EIP
-    Properties:
-      Domain: vpc
+PublicSubnet:
+  Type: AWS::EC2::Subnet
+  Properties:
+    VpcId: !Ref Vpc
+    CidrBlock: !Ref PublicSubnetCidr
+    MapPublicIpOnLaunch: true
+    Tags:
+      - Key: Name
+        Value: PublicSubnet
 
-  NatGateway:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NatGatewayEIP.AllocationId
-      SubnetId: !Ref PublicSubnet
-      Tags:
-        - Key: Name
-          Value: MyNatGateway
+PrivateSubnet:
+  Type: AWS::EC2::Subnet
+  Properties:
+    VpcId: !Ref Vpc
+    CidrBlock: !Ref PrivateSubnetCidr
+    Tags:
+      - Key: Name
+        Value: PrivateSubnet
 
+PublicRouteTable:
+  Type: AWS::EC2::RouteTable
+  Properties:
+    VpcId: !Ref Vpc
+    Tags:
+      - Key: Name
+        Value: PublicRouteTable
+
+PublicRoute:
+  Type: AWS::EC2::Route
+  Properties:
+    RouteTableId: !Ref PublicRouteTable
+    DestinationCidrBlock: 0.0.0.0/0
+    GatewayId: !Ref InternetGateway
+
+PublicSubnetRouteTableAssociation:
+  Type: AWS::EC2::SubnetRouteTableAssociation
+  Properties:
+    SubnetId: !Ref PublicSubnet
+    RouteTableId: !Ref PublicRouteTable
+
+PrivateRouteTable:
+  Type: AWS::EC2::RouteTable
+  Properties:
+    VpcId: !Ref Vpc
+    Tags:
+      - Key: Name
+        Value: PrivateRouteTable
+
+PrivateRoute:
+  Type: AWS::EC2::Route
+  Properties:
+    RouteTableId: !Ref PrivateRouteTable
+    DestinationCidrBlock: 0.0.0.0/0
+    NatGatewayId: !Ref NatGateway
+
+PrivateSubnetRouteTableAssociation:
+  Type: AWS::EC2::SubnetRouteTableAssociation
+  Properties:
+    SubnetId: !Ref PrivateSubnet
+    RouteTableId: !Ref PrivateRouteTable
+
+NatGatewayEIP:
+  Type: AWS::EC2::EIP
+  Properties:
+    Domain: vpc
+
+NatGateway:
+  Type: AWS::EC2::NatGateway
+  Properties:
+    AllocationId: !GetAtt NatGatewayEIP.AllocationId
+    SubnetId: !Ref PublicSubnet
+    Tags:
+      - Key: Name
+        Value: MyNatGateway
+
+
+  # Application Layer: Roles, ECS Cluster, Task Definition, and Service
   # ECS Execution Role for ECR
   ECSExecutionRole:
     Type: AWS::IAM::Role
@@ -97,7 +155,6 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
 
-  # Application Layer: ECS Cluster, Task Definition, and Service
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -200,6 +257,22 @@ Resources:
         ScaleInCooldown: 60
         ScaleOutCooldown: 30
 
+
+  # Security Layer: Security Groups, WAF, and GuardDuty
+  AppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref Vpc
+      GroupDescription: Allow traffic to the application
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref ContainerPort
+          ToPort: !Ref ContainerPort
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
   # Monitoring: CloudWatch Alarms for ECS
   RunningTasksAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -221,21 +294,6 @@ Resources:
       AlarmActions:
         - !Ref SNSTopic
 
-  # Security Layer: Security Groups, WAF, and GuardDuty
-  AppSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      VpcId: !Ref Vpc
-      GroupDescription: Allow traffic to the application
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: !Ref ContainerPort
-          ToPort: !Ref ContainerPort
-          CidrIp: 0.0.0.0/0
-      SecurityGroupEgress:
-        - IpProtocol: -1
-          CidrIp: 0.0.0.0/0
-
   # SNS for Notifications
   SNSTopic:
     Type: AWS::SNS::Topic
@@ -245,6 +303,7 @@ Resources:
         - Protocol: email
           Endpoint: !Ref EmailAddress
 
+#Outputs of the Stack
 Outputs:
   VpcId:
     Value: !Ref Vpc
