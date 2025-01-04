@@ -126,6 +126,7 @@ NatGateway:
 
 PrivateRoute:
   Type: AWS::EC2::Route
+  DependsOn: NatGateway
   Properties:
     RouteTableId: !Ref PrivateRouteTable
     DestinationCidrBlock: 0.0.0.0/0
@@ -136,20 +137,20 @@ PrivateSubnetRouteTableAssociation:
   Properties:
     SubnetId: !Ref PrivateSubnet
     RouteTableId: !Ref PrivateRouteTable
-
-  AppSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      VpcId: !Ref Vpc
-      GroupDescription: Allow traffic to the application
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: !Ref ContainerPort
-          ToPort: !Ref ContainerPort
-          CidrIp: 0.0.0.0/0
-      SecurityGroupEgress:
-        - IpProtocol: -1
-          CidrIp: 0.0.0.0/0
+  
+AppSecurityGroup:
+  Type: AWS::EC2::SecurityGroup
+  Properties:
+    VpcId: !Ref Vpc
+    GroupDescription: Allow traffic to the application
+    SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: !Ref ContainerPort
+        ToPort: !Ref ContainerPort
+        CidrIp: 0.0.0.0/0
+    SecurityGroupEgress:
+      - IpProtocol: -1
+        CidrIp: 0.0.0.0/0
 
   # Application Layer: Roles, ECS Cluster, Task Definition, and Service
   ECSExecutionRole:
@@ -189,6 +190,7 @@ PrivateSubnetRouteTableAssociation:
 
   ECSService:
     Type: AWS::ECS::Service
+    DependsOn: [TaskDefinition, AppSecurityGroup]
     Properties:
       Cluster: !Ref ECSCluster
       DesiredCount: 2
