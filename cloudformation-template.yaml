@@ -204,7 +204,7 @@ Resources:
 
   ECSService:
     Type: AWS::ECS::Service
-    DependsOn: [TaskDefinition, AppSecurityGroup]
+    DependsOn: [TaskDefinition, AppSecurityGroup, NatGateway]
     Properties:
       Cluster: !Ref ECSCluster
       DesiredCount: 2
