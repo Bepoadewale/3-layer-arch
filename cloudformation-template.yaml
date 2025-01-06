@@ -204,7 +204,7 @@ Resources:
 
   ECSService:
     Type: AWS::ECS::Service
-    DependsOn: [TaskDefinition, AppSecurityGroup, NatGateway]
+    DependsOn: [TaskDefinition, AppSecurityGroup]
     Properties:
       Cluster: !Ref ECSCluster
       DesiredCount: 2
@@ -246,7 +246,7 @@ Resources:
 
   ECSScalingTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
-    DependsOn: ECSService
+    DependsOn: [ECSService, PrivateRoute]
     Properties:
       MaxCapacity: 10
       MinCapacity: 2
