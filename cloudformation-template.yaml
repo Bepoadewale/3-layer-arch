@@ -250,7 +250,7 @@ Resources:
     Properties:
       MaxCapacity: 10
       MinCapacity: 2
-      ResourceId: !Sub service/${ClusterName}/${ServiceName}
+      ResourceId: !Sub "service/${ClusterName}/${ServiceName}"
       RoleARN: !GetAtt ECSAutoScalingRole.Arn
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
