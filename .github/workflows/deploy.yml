@@ -45,7 +45,7 @@ jobs:
     - name: Push Docker image to Amazon ECR
       run: docker push ${{ secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com/my-app:latest
 
-    # Step 8: Deploy CloudFormation Template
+    # Step 8: Deploy CloudFormation Template now
     - name: Deploy CloudFormation Stack
       run: |
         aws cloudformation deploy \
@@ -54,7 +54,7 @@ jobs:
           --parameter-overrides \
             ContainerImage=${{ secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com/my-app:latest \
             EmailAddress=${{ secrets.SNS_EMAIL }} \
-          --capabilities CAPABILITY_NAMED_IAM
+          --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 
     # Step 9: Confirm Subscription to SNS topic
     - name: Confirm SNS Subscription
