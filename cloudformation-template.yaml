@@ -14,7 +14,7 @@ Parameters:
     Type: String
     Default: 10.0.2.0/24
     Description: CIDR block for the private subnet
-  ClusterName:
+  ClusterName: 
     Type: String
     Default: MyCluster
     Description: Name of the ECS Cluster
@@ -243,6 +243,12 @@ Resources:
                   - ecs:UpdateService
                   - ecs:DescribeServices
                 Resource: "*"
+              - Effect: Allow
+                Action:
+                  - cloudwatch:PutMetricAlarm
+                  - cloudwatch:DescribeAlarms
+                  - cloudwatch:DeleteAlarms
+                Resource: "*"
 
   ECSScalingTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
@@ -250,13 +256,14 @@ Resources:
     Properties:
       MaxCapacity: 10
       MinCapacity: 2
-      ResourceId: !Sub "service/MyCluster/MyService"
+      ResourceId: service/!Ref ClusterName/!Ref ServiceName
       RoleARN: !GetAtt ECSAutoScalingRole.Arn
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
 
   ECSScaleUpPolicy:
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    DependsOn: ECSScalingTarget
     Properties:
       PolicyName: ScaleUpPolicy
       PolicyType: TargetTrackingScaling
@@ -270,6 +277,7 @@ Resources:
 
   ECSScaleDownPolicy:
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    DependsOn: ECSScalingTarget
     Properties:
       PolicyName: ScaleDownPolicy
       PolicyType: TargetTrackingScaling
