@@ -246,7 +246,7 @@ Resources:
 
   ECSScalingTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
-    DependsOn: [ECSService, PrivateRoute]
+    DependsOn: ECSService
     Properties:
       MaxCapacity: 10
       MinCapacity: 2

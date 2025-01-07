@@ -55,7 +55,6 @@ jobs:
             ContainerImage=${{ secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com/my-app:latest \
             EmailAddress=${{ secrets.SNS_EMAIL }} \
           --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
-          --on-failure DO_NOTHING
 
     # Step 9: Confirm Subscription to SNS topic
     - name: Confirm SNS Subscription
