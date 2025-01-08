@@ -206,6 +206,7 @@ Resources:
     Type: AWS::ECS::Service
     DependsOn: [TaskDefinition, AppSecurityGroup]
     Properties:
+      ServiceName: MyService
       Cluster: !Ref ECSCluster
       DesiredCount: 2
       LaunchType: FARGATE
@@ -256,7 +257,7 @@ Resources:
     Properties:
       MaxCapacity: 10
       MinCapacity: 2
-      ResourceId: service/!Ref ClusterName/!Ref ServiceName
+      ResourceId: !Sub "service/${ClusterName}/${ServiceName}"
       RoleARN: !GetAtt ECSAutoScalingRole.Arn
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
