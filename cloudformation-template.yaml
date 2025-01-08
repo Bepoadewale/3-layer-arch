@@ -184,6 +184,14 @@ Resources:
         - Protocol: email
           Endpoint: !Ref EmailAddress
 
+  GuardDutyDetector:
+    Type: AWS::GuardDuty::Detector
+    Properties:
+      Enable: true
+      DataSources:
+        S3Logs:
+          Enable: true
+          
 # APPLICATION LAYER
   ECSTaskExecutionRole:
     Type: AWS::IAM::Role
