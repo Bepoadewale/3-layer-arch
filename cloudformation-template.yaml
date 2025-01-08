@@ -51,7 +51,7 @@ Parameters:
     Default: guardduty@example.com
     Description: Email address to receive GuardDuty threat notifications
 
-# Foundation Layer: VPC, Subnets, Internet Gateway, NAT Gateway, and Route Tables
+# Foundation Layer
 Resources:
   Vpc:
     Type: AWS::EC2::VPC
@@ -188,7 +188,7 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable
 
 
-#Security Layer: Access, Monitoring, Notifications 
+#Security Layer
   AppSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -415,7 +415,6 @@ Resources:
         ScaleOutCooldown: 30
 
 #Outputs of the Resources
-Outputs:
 Outputs:
   VpcId:
     Value: !Ref Vpc
