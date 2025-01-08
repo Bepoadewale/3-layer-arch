@@ -6,7 +6,7 @@ This repository demonstrates the deployment of a 3-layer microservices architect
 
 - **app.py**: Contains the Python application code for the web service.
 
-- **cloudformation-template.yaml**: Defines the AWS infrastructure resources, including VPC, subnets, ECS cluster, task definitions, services, and associated roles and policies.
+- **cloudformation-template.yaml**: Defines the AWS infrastructure resources, including VPC, subnets, ECS cluster, task definitions, services, and associated IAM roles and policies.
 
 - **dockerfile**: Specifies the Docker image build instructions for the application.
 
