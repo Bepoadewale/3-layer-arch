@@ -139,7 +139,9 @@ Resources:
     Properties:
       SubnetId: !Ref PrivateSubnet
       RouteTableId: !Ref PrivateRouteTable
-    
+
+
+#Security Layer:     
   AppSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -154,7 +156,35 @@ Resources:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
 
-    # Application Layer: Roles, ECS Cluster, Task Definition, and Service
+  RunningTasksAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: HighRunningTasks
+      AlarmDescription: Trigger an alarm when the number of running tasks reaches 8
+      MetricName: RunningTaskCount
+      Namespace: AWS/ECS
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 8
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: ClusterName
+          Value: !Ref ClusterName
+        - Name: ServiceName
+          Value: !Ref ServiceName
+      AlarmActions:
+        - !Ref SNSTopic
+
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: ECSNotifications
+      Subscription:
+        - Protocol: email
+          Endpoint: !Ref EmailAddress
+
+# APPLICATION LAYER
   ECSTaskExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -289,36 +319,6 @@ Resources:
         TargetValue: 70.0
         ScaleInCooldown: 60
         ScaleOutCooldown: 30
-
-  # Security Layer: Security Groups, WAF, CloudWatch, and GuardDuty
-  RunningTasksAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmName: HighRunningTasks
-      AlarmDescription: Trigger an alarm when the number of running tasks reaches 8
-      MetricName: RunningTaskCount
-      Namespace: AWS/ECS
-      Statistic: Average
-      Period: 60
-      EvaluationPeriods: 1
-      Threshold: 8
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      Dimensions:
-        - Name: ClusterName
-          Value: !Ref ClusterName
-        - Name: ServiceName
-          Value: !Ref ServiceName
-      AlarmActions:
-        - !Ref SNSTopic
-
-  # SNS for Notifications
-  SNSTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      TopicName: ECSNotifications
-      Subscription:
-        - Protocol: email
-          Endpoint: !Ref EmailAddress
 
 #Outputs of the Stack
 Outputs:
