@@ -166,7 +166,7 @@ Resources:
       Tags:
         - Key: Name
           Value: PrivateRouteTable
-          
+
   PrivateRoute:
     Type: AWS::EC2::Route
     DependsOn: NatGateway
@@ -416,17 +416,26 @@ Resources:
 
 #Outputs of the Resources
 Outputs:
+Outputs:
   VpcId:
     Value: !Ref Vpc
     Description: The ID of the VPC
 
-  PublicSubnetId:
-    Value: !Ref PublicSubnet
-    Description: The ID of the public subnet
+  PublicSubnet1Id:
+    Value: !Ref PublicSubnet1
+    Description: The ID of the public subnet in AZ1
 
-  PrivateSubnetId:
-    Value: !Ref PrivateSubnet
-    Description: The ID of the private subnet
+  PublicSubnet2Id:
+    Value: !Ref PublicSubnet2
+    Description: The ID of the public subnet in AZ2
+
+  PrivateSubnet1Id:
+    Value: !Ref PrivateSubnet1
+    Description: The ID of the private subnet in AZ1
+
+  PrivateSubnet2Id:
+    Value: !Ref PrivateSubnet2
+    Description: The ID of the private subnet in AZ2
 
   AppSecurityGroupId:
     Value: !Ref AppSecurityGroup
