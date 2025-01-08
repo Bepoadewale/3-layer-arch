@@ -36,8 +36,12 @@ Parameters:
     Description: Port on which the container listens
   EmailAddress:
     Type: String
-    Default: bepoadewale@yahoo.com
+    Default: bepoadewale@example.com
     Description: Email address to receive SNS notifications
+  GuardDutyNotificationEmail:
+    Type: String
+    Default: guardduty@example.com
+    Description: Email address to receive GuardDuty threat notifications
 
 # Foundation Layer: VPC, Subnets, Internet Gateway, NAT Gateway, and Route Tables
 Resources:
@@ -141,7 +145,7 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable
 
 
-#Security Layer:     
+#Security Layer: Access, Monitoring, Notifications 
   AppSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -184,6 +188,14 @@ Resources:
         - Protocol: email
           Endpoint: !Ref EmailAddress
 
+  GuardDutySNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: GuardDutyNotifications
+      Subscription:
+        - Protocol: email
+          Endpoint: !Ref GuardDutyNotificationEmail
+ 
   GuardDutyDetector:
     Type: AWS::GuardDuty::Detector
     Properties:
@@ -191,8 +203,38 @@ Resources:
       DataSources:
         S3Logs:
           Enable: true
-          
-# APPLICATION LAYER
+
+  GuardDutyEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: GuardDutyFindingRule
+      Description: Sends GuardDuty findings to the GuardDuty SNS topic.
+      EventPattern:
+        source:
+          - aws.guardduty
+        detail-type:
+          - GuardDuty Finding
+      Targets:
+        - Arn: !Ref GuardDutySNSTopic
+          Id: GuardDutyNotificationTarget
+
+  GuardDutySNSTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+        - !Ref GuardDutySNSTopic
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: "sns:Publish"
+            Resource: !Ref GuardDutySNSTopic
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !GetAtt GuardDutyEventRule.Arn
+
+# Application Layer
   ECSTaskExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -328,17 +370,60 @@ Resources:
         ScaleInCooldown: 60
         ScaleOutCooldown: 30
 
-#Outputs of the Stack
+#Outputs of the Resources
 Outputs:
   VpcId:
     Value: !Ref Vpc
     Description: The ID of the VPC
+
+  PublicSubnetId:
+    Value: !Ref PublicSubnet
+    Description: The ID of the public subnet
+
+  PrivateSubnetId:
+    Value: !Ref PrivateSubnet
+    Description: The ID of the private subnet
+
+  AppSecurityGroupId:
+    Value: !Ref AppSecurityGroup
+    Description: The ID of the application security group
+
+  NatGatewayId:
+    Value: !Ref NatGateway
+    Description: The ID of the NAT Gateway
+
+  NatGatewayElasticIp:
+    Value: !Ref NatGatewayEIP
+    Description: The Elastic IP address associated with the NAT Gateway
+
   ECSClusterName:
     Value: !Ref ECSCluster
     Description: The name of the ECS cluster
+
   ECSServiceName:
-    Value: !Ref ECSService
+    Value: !GetAtt ECSService.ServiceName
     Description: The name of the ECS service
+
+  TaskDefinitionArn:
+    Value: !Ref TaskDefinition
+    Description: The ARN of the ECS task definition
+
+  RunningTasksAlarmName:
+    Value: !Ref RunningTasksAlarm
+    Description: The name of the CloudWatch alarm monitoring ECS tasks
+
+  GuardDutyDetectorId:
+    Value: !Ref GuardDutyDetector
+    Description: The ID of the GuardDuty detector
+
+  GuardDutyEventRuleArn:
+    Value: !GetAtt GuardDutyEventRule.Arn
+    Description: The ARN of the EventBridge rule for GuardDuty findings
+
   SNSTopicArn:
     Value: !Ref SNSTopic
-    Description: The ARN of the SNS topic
+    Description: The ARN of the SNS topic for ECS notifications
+
+  GuardDutySNSTopicArn:
+    Value: !Ref GuardDutySNSTopic
+    Description: The ARN of the SNS topic for GuardDuty notifications

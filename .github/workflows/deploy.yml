@@ -54,6 +54,7 @@ jobs:
           --parameter-overrides \
             ContainerImage=${{ secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com/my-app:latest \
             EmailAddress=${{ secrets.SNS_EMAIL }} \
+            GuardDutyNotificationEmail=${{ secrets.SNS_EMAIL }} \
           --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
           --disable-rollback
 
