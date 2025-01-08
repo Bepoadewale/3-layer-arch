@@ -401,7 +401,7 @@ Outputs:
     Description: The name of the ECS cluster
 
   ECSServiceName:
-    Value: !GetAtt ECSService.ServiceName
+    Value: !Ref ECSService
     Description: The name of the ECS service
 
   TaskDefinitionArn:
